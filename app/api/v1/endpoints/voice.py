@@ -3,9 +3,12 @@ from app.services.twilio_service import TwilioService
 from app.core.llm.response_generator import ResponseGenerator
 from app.core.middleware import get_tenant_id
 from app.core.cache import get_cache, Cache
+from app.services.conversation.storage import ConversationStorage
+from app.schemas.ask import ConversationMessage
 import logging
 from typing import Dict, Any
 import uuid
+from datetime import datetime
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -30,6 +33,9 @@ async def initiate_call(
         Dict containing call details
     """
     try:
+        # Initialize conversation storage
+        conversation_storage = ConversationStorage(cache)
+        
         # Generate a unique conversation ID
         conversation_id = str(uuid.uuid4())
         
@@ -48,6 +54,17 @@ async def initiate_call(
         
         # Make the call
         call_details = await twilio_service.make_call(to_number, webhook_url)
+        
+        # Store initial conversation message
+        await conversation_storage.add_message(
+            tenant_id,
+            conversation_id,
+            ConversationMessage(
+                role="assistant",
+                content="Iniciando llamada de soporte técnico.",
+                timestamp=datetime.utcnow()
+            )
+        )
         
         return {
             "status": "success",
@@ -80,6 +97,9 @@ async def handle_voice_response(
         TwiML response
     """
     try:
+        # Initialize conversation storage
+        conversation_storage = ConversationStorage(cache)
+        
         # Get form data
         form_data = await request.form()
         call_sid = form_data.get("CallSid")
@@ -104,13 +124,42 @@ async def handle_voice_response(
                 expire=3600
             )
         
+        # Store user's speech input
+        await conversation_storage.add_message(
+            tenant_id,
+            conversation_id,
+            ConversationMessage(
+                role="user",
+                content=speech_result,
+                timestamp=datetime.utcnow()
+            )
+        )
+        
+        # Get conversation history
+        conversation_history = await conversation_storage.get_conversation(
+            tenant_id,
+            conversation_id
+        )
+        
         # Initialize response generator
         response_generator = ResponseGenerator(collection_name=tenant_id)
         
         # Generate response
         response = await response_generator.generate_response(
             question=speech_result,
-            conversation_id=conversation_id
+            conversation_id=conversation_id,
+            conversation_history=conversation_history
+        )
+        
+        # Store bot's response
+        await conversation_storage.add_message(
+            tenant_id,
+            conversation_id,
+            ConversationMessage(
+                role="assistant",
+                content=response["answer"],
+                timestamp=datetime.utcnow()
+            )
         )
         
         # Generate TwiML
@@ -123,13 +172,7 @@ async def handle_voice_response(
         
     except Exception as e:
         logger.error(f"Error handling voice response: {str(e)}")
-        # Generate error TwiML
-        twilio_service = TwilioService()
-        twiml = twilio_service.generate_twiml(
-            "Lo siento, ha ocurrido un error. Por favor, intente de nuevo.",
-            gather_input=True
-        )
-        return Response(
-            content=twiml,
-            media_type="application/xml"
+        raise HTTPException(
+            status_code=500,
+            detail="Error processing voice response. Please try again."
         ) 

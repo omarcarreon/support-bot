@@ -3,6 +3,7 @@ from app.schemas.ask import AskRequest, AskResponse, SourceDocument, Conversatio
 from app.core.llm.response_generator import ResponseGenerator
 from app.core.middleware import get_tenant_id
 from app.core.cache import get_cache, Cache
+from app.services.conversation.storage import ConversationStorage
 import logging
 import uuid
 
@@ -29,9 +30,18 @@ async def ask(
     try:
         logger.info(f"Processing question for tenant {tenant_id}: {request.question[:100]}...")
         
+        # Initialize conversation storage
+        conversation_storage = ConversationStorage(cache)
+        
         # Generate or use conversation ID
         conversation_id = request.conversation_id or str(uuid.uuid4())
         logger.debug(f"Using conversation ID: {conversation_id}")
+        
+        # Get existing conversation history
+        conversation_history = await conversation_storage.get_conversation(
+            tenant_id,
+            conversation_id
+        ) or request.conversation_history or []
         
         # Check cache first
         cache_key = f"ask:{tenant_id}:{conversation_id}:{request.question}"
@@ -51,7 +61,7 @@ async def ask(
         response = await response_generator.generate_response(
             question=request.question,
             conversation_id=conversation_id,
-            conversation_history=request.conversation_history
+            conversation_history=conversation_history
         )
         logger.info("Response generated successfully")
         
@@ -73,6 +83,13 @@ async def ask(
             confidence=response["confidence"],
             conversation_id=response["conversation_id"],
             conversation_history=response["conversation_history"]
+        )
+        
+        # Store updated conversation history
+        await conversation_storage.store_conversation(
+            tenant_id,
+            conversation_id,
+            ask_response.conversation_history
         )
         
         # Cache the response with tags for invalidation
