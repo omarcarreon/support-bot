@@ -213,11 +213,12 @@ An operator dials a number → backend receives audio → transcription → clie
   - [x] Implement context window selection
   - [x] Add search result ranking
   _Done: Implemented semantic search with context windows, relevance scoring, and result ranking._
-- [ ] Add conversation context handling
-  - [ ] Implement conversation ID tracking
-  - [ ] Store conversation history per tenant
-  - [ ] Use conversation context to improve response relevance
-  - [ ] Add conversation cleanup/expiration
+- [x] Add conversation context handling
+  - [x] Implement conversation ID tracking
+  - [x] Store conversation history per tenant
+  - [x] Use conversation context to improve response relevance
+  - [x] Add conversation cleanup/expiration
+  _Done: Implemented ConversationStorage service with Redis cache, 24-hour TTL, and tenant isolation._
 - [ ] Add data management
   - [ ] Implement manual versioning
   - [ ] Add manual update/delete operations
