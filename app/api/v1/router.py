@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import tenants, ask, manual
+from app.api.v1.endpoints import tenants, ask, manual, whatsapp
 
 # Create separate routers for authenticated and non-authenticated endpoints
 auth_router = APIRouter()
@@ -7,6 +7,7 @@ public_router = APIRouter()
 
 # Public endpoints (no authentication required)
 public_router.include_router(tenants.public_router, prefix="/tenants", tags=["tenants"])
+public_router.include_router(whatsapp.router, prefix="/whatsapp", tags=["whatsapp"])
 
 # Authenticated endpoints (require API key)
 auth_router.include_router(tenants.auth_router, prefix="/tenants", tags=["tenants"])

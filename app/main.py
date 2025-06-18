@@ -1,14 +1,18 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
-from app.core.config import settings
+from app.core.config import get_settings
 from app.core.middleware import RequestIDMiddleware, TenantMiddleware
+from app.api.v1.router import api_router
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+
+# Get settings
+settings = get_settings()
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -30,14 +34,13 @@ app.add_middleware(RequestIDMiddleware)
 # Add Tenant middleware
 app.add_middleware(TenantMiddleware)
 
+# Include main API router
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
 @app.get("/")
 async def root():
     return {
         "message": "Welcome to Support Bot API",
         "version": "1.0.0",
         "docs_url": "/docs"
-    }
-
-# Import and include API router
-from app.api.v1.router import api_router
-app.include_router(api_router, prefix=settings.API_V1_STR) 
+    } 

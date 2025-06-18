@@ -314,71 +314,86 @@ An operator dials a number → backend receives audio → transcription → clie
   - [ ] Add parallel processing
   - [ ] Optimize caching strategy
 
-## Phase 4: Minimal Voice Integration (Twilio → backend)
-**Objective**: Receive a call and redirect what the operator says to the backend
+## Phase 4: WhatsApp Cloud API Integration
+**Objective**: Receive text messages from WhatsApp and respond with automated assistance
 
-### 4.1 Twilio Setup
-- [ ] Purchase a Twilio number
-  - [ ] Select appropriate country/region
-  - [ ] Choose number type (local/toll-free)
-  - [ ] Configure number capabilities
-- [ ] Set up Twilio account
-  - [ ] Create account and get credentials
-  - [ ] Configure environment variables
+### 4.1 WhatsApp Cloud API Setup
+- [x] Set up WhatsApp Cloud API account
+  - [x] Create Meta Business account
+    _Done: Business account created and test number obtained_
+  - [x] Set up WhatsApp Cloud API
+    _Done: API access configured with test number_
+  - [x] Configure environment variables
+    _Note: Added WhatsApp-related environment variables in config.py_
   - [ ] Set up billing information
+    _Note: Required for production use, not needed for test number_
+- [ ] Configure WhatsApp Cloud API number
+  - [x] Verify business phone number
+    _Done: Test number verified and active_
+  - [x] Set up webhook URL
+    _Done: Webhook URL configured and verified in Meta Developer Dashboard_
+  - [ ] Add test phone numbers
+    _Note: Need to add recipient phone numbers to allowed list_
 
 ### 4.2 Webhook Configuration
-- [ ] Configure webhook to FastAPI for incoming calls
-  - [ ] Create Twilio webhook endpoint
-  - [ ] Implement request validation
-  - [ ] Add Twilio signature verification
-  - [ ] Set up error handling
-- [ ] Implement call handling
-  - [ ] Create call state management
-  - [ ] Add call recording options
-  - [ ] Implement call timeout handling
-  - [ ] Add call status tracking
+- [x] Configure webhook to FastAPI for incoming messages
+  - [x] Create WhatsApp webhook endpoint
+  - [x] Implement request validation
+  - [x] Add Cloud API signature verification (simplified)
+  - [x] Set up error handling
+- [x] Implement message handling
+  - [x] Create message state management
+  - [x] Add text message processing
+    _Done: Implemented in WhatsAppService with validation and error handling_
+  - [x] Implement timeout handling
+    _Note: Implemented for text messages with retry logic_
+  - [x] Implement message status tracking
+    _Note: Implemented tracking for sent, delivered, and read statuses_
 
-### 4.3 Voice Processing
-- [ ] Implement voice input handling
-  - [ ] Set up Twilio <Gather> verb
-  - [ ] Configure voice input parameters
-  - [ ] Add input validation
-  - [ ] Implement timeout handling
-- [ ] Set up transcription
-  - [ ] Configure automatic transcription
-  - [ ] Add language settings (Latin Spanish)
-  - [ ] Implement transcription error handling
-  - [ ] Add transcription quality checks
+### 4.3 Text Message Handling
+- [x] Configure text message permissions
+- [x] Set up text message settings
+- [x] Implement text message validation
+- [x] Add timeout handling
+- [x] Implement error handling
+- [x] Test text message receiving
+- [ ] Add message length limits (optional)
 
 ### 4.4 Response Handling
-- [ ] Process transcribed text
-  - [ ] Send to /ask endpoint
-  - [ ] Handle response formatting
-  - [ ] Add error handling
-  - [ ] Implement retry logic
-- [ ] Generate voice response
-  - [ ] Configure Twilio <Say> verb
-  - [ ] Set up voice parameters
-  - [ ] Add SSML support
-  - [ ] Implement response caching
+- [x] Process text messages
+  - [x] Send to /ask endpoint
+  - [x] Handle response formatting
+  - [x] Add error handling
+  - [x] Implement retry logic
+    _Done: Added integration with /ask endpoint, error handling, and retry logic_
+- [x] Generate text response
+  - [x] Configure response formatting
+  - [x] Set up response parameters
+  - [x] Add response validation
+  - [x] Implement response caching
+    _Done: Added response generation with proper formatting and caching_
+- [x] Send WhatsApp response
+  - [x] Implement message status tracking
+  - [x] Add retry logic
+  - [x] Handle delivery status
+  - [x] Add error recovery
 
 ### 4.5 Testing and Monitoring
 - [ ] Set up testing environment
-  - [ ] Create test phone numbers
+  - [ ] Create test WhatsApp numbers
   - [ ] Set up test webhooks
   - [ ] Configure test credentials
 - [ ] Implement monitoring
-  - [ ] Add call logging
+  - [ ] Add message logging
   - [ ] Set up error tracking
-  - [ ] Monitor transcription quality
+  - [ ] Monitor response quality
   - [ ] Track response times
 
 ## 🎯 Result of this stage
 You'll have an environment where:
 - [ ] The client uploads their manual
-- [ ] An operator calls a number (Twilio)
-- [ ] The bot responds with a guide based on that manual
+- [ ] An operator sends a voice message via WhatsApp
+- [ ] The bot responds with a voice message based on that manual
 - [ ] All logic lives in a backend controlled by you
 
 ## 🪜 Proposed daily breakdown (reference for 1 person)
@@ -388,5 +403,5 @@ You'll have an environment where:
 | 1   | FastAPI setup + basic multi-tenant structure |
 | 2   | Manual ingestion and embeddings + search testing |
 | 3   | QA chain with Langchain + contextual response |
-| 4   | Initial Twilio integration (text to text only) |
-| 5   | Real voice redirection and end-to-end testing |
+| 4   | Initial WhatsApp integration (text to text only) |
+| 5   | Real voice message handling and end-to-end testing |

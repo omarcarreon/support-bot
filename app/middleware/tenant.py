@@ -18,6 +18,8 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # Define public routes that don't require API key
         self.public_routes = {
             ("POST", "/api/v1/tenants"),  # Tenant creation without trailing slash
+            ("GET", "/api/v1/whatsapp/webhook"),  # WhatsApp webhook verification
+            ("POST", "/api/v1/whatsapp/webhook"),  # WhatsApp webhook messages
         }
 
     async def dispatch(self, request: Request, call_next):
